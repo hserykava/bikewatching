@@ -116,7 +116,7 @@ function updateScatterPlot(timeFilter) {
       if (title.empty()) {
         title = d3.select(this).append('title');
       }
-      title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+      title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
     });
 
   updatePositions();
@@ -205,16 +205,18 @@ map.on('load', async () => {
         exit => exit.remove()
       )
       .attr('r', d => radiusScale(d.totalTraffic))
-      .style('--departure-ratio', d => {
+      .attr('fill', d => {
         const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-        return stationFlow(ratio);
+        if (ratio < 0.33) return 'darkorange';
+        else if (ratio > 0.66) return 'steelblue';
+        else return 'purple'; 
       })
       .each(function (d) {
         let title = d3.select(this).select('title');
         if (title.empty()) {
           title = d3.select(this).append('title');
         }
-        title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+        title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
       });
 
     updatePositions();

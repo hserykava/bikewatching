@@ -16,13 +16,26 @@ map.on('load', async () => {
   });
 
   map.addLayer({
-    id: 'bike-lanes',
-    type: 'line',
-    source: 'boston_route',
-    paint: {
-      'line-color': 'green',
-      'line-width': 3,
-      'line-opacity': 0.4,
-    },
-  });
+  id: 'bike-lanes',
+  type: 'line',
+  source: 'boston_route',
+  paint: {
+    'line-color': '#FFB6C1',  
+    'line-width': 5,          
+    'line-opacity': 0.6        
+  },
+});
+  map.addSource('cambridge_route', {
+  type: 'geojson',
+  data: 'https://data.cambridgema.gov/resource/42cb-6t3e.geojson',
+});
+map.addLayer({
+  id: 'cambridge-bike-lanes',
+  type: 'line',
+  source: 'cambridge_route',
+  paint: {
+    'line-color': '#E6E6FA',
+    'line-width': 5,
+    'line-opacity': 0.6
+  },
 });

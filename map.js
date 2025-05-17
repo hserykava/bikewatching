@@ -13,6 +13,15 @@ const map = new mapboxgl.Map({
   maxZoom: 18
 });
 
+
+let circles;
+
+
+function getCoords(station) {
+  const point = new mapboxgl.LngLat(+station.lon, +station.lat);
+  const { x, y } = map.project(point);
+  return { cx: x, cy: y };
+}
 map.on('load', async () => {
   map.addSource('boston_route', {
     type: 'geojson',
@@ -46,47 +55,40 @@ map.on('load', async () => {
     },
   });
 
-  let jsonData;
   try {
-    const stationUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-    const json = await d3.json(stationUrl);
-    jsonData = json;
+    const jsonUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+    const json = await d3.json(jsonUrl);
+    const stations = json.data.stations;
+
+    console.log('Loaded Bluebikes Data:', stations);
+
     const svg = d3.select('#map').select('svg');
 
-    const stations = jsonData.data.stations;
-    console.log('Stations Array:', stations);
+    circles = svg
+      .selectAll('circle')
+      .data(stations)
+      .enter()
+      .append('circle')
+      .attr('r', 5)
+      .attr('fill', 'steelblue')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.8);
 
-    function getCoords(station) {
-      const point = new mapboxgl.LngLat(+station.lon, +station.lat);
-      const { x, y } = map.project(point);
-      return { cx: x, cy: y };
+    function updatePositions() {
+      circles
+        .attr('cx', d => getCoords(d).cx)
+        .attr('cy', d => getCoords(d).cy);
     }
 
-    const trafficUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv';
-    const trips = await d3.csv(trafficUrl);
+    updatePositions();
 
-    const departures = d3.rollup(
-      trips,
-      v => v.length,
-      d => d.start_station_id
-    );
+    map.on('move', updatePositions);
+    map.on('zoom', updatePositions);
+    map.on('resize', updatePositions);
+    map.on('moveend', updatePositions);
 
-    const arrivals = d3.rollup(
-      trips,
-      v => v.length,
-      d => d.end_station_id
-    );
-
-    const enrichedStations = stations.map(station => {
-      const id = station.short_name;
-      station.arrivals = arrivals.get(id) ?? 0;
-      station.departures = departures.get(id) ?? 0;
-      station.totalTraffic = station.arrivals + station.departures;
-      return station;
-    });
-
-    console.log('Enriched Stations:', enrichedStations);
   } catch (error) {
-    console.error('Error loading JSON or CSV:', error);
+    console.error('Error loading Bluebikes JSON:', error);
   }
 });

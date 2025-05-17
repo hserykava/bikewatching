@@ -29,7 +29,7 @@ body {
   --color-departures: steelblue;
   --color-arrivals: darkorange;
   --color: color-mix(
-    in oklch,
+    in srgb,
     var(--color-departures) calc(100% * var(--departure-ratio)),
     var(--color-arrivals)
   );

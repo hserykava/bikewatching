@@ -55,24 +55,25 @@ map.on('load', async () => {
   });
 
   try {
-    const stationUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-    const json = await d3.json(stationUrl);
-    let stations = json.data.stations;
+    const [stationsJson, tripsCsv] = await Promise.all([
+      d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json'),
+      d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv')
+    ]);
 
-    console.log('Loaded Bluebikes Station Data:', stations);
-    const trafficUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv';
-    const trips = await d3.csv(trafficUrl);
-    console.log('Loaded Traffic Trips:', trips);
+    let stations = stationsJson.data.stations;
+    const trips = tripsCsv;
     const departures = d3.rollup(
       trips,
       v => v.length,
       d => d.start_station_id
     );
+
     const arrivals = d3.rollup(
       trips,
       v => v.length,
       d => d.end_station_id
     );
+
     stations = stations.map(station => {
       const id = station.short_name;
       station.arrivals = arrivals.get(id) ?? 0;
@@ -80,8 +81,10 @@ map.on('load', async () => {
       station.totalTraffic = station.arrivals + station.departures;
       return station;
     });
+    const radiusScale = d3.scaleSqrt()
+      .domain([0, d3.max(stations, d => d.totalTraffic)])
+      .range([0, 25]);
 
-    console.log('Stations with traffic data:', stations);
     const svg = d3.select('#map').select('svg');
 
     circles = svg
@@ -89,11 +92,11 @@ map.on('load', async () => {
       .data(stations)
       .enter()
       .append('circle')
-      .attr('r', 5)
+      .attr('r', d => radiusScale(d.totalTraffic))
       .attr('fill', 'steelblue')
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
-      .attr('opacity', 0.8);
+      .attr('opacity', 0.6);
 
     function updatePositions() {
       circles

@@ -27,4 +27,19 @@ body {
 circle {
   pointer-events: auto;
 }
+header {
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+  margin-bottom: 1em;
+}
+
+label {
+  margin-left: auto;
+}
+
+em {
+  color: #666;
+  font-style: italic;
+}
 

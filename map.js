@@ -191,23 +191,32 @@ map.on('load', async () => {
       .range([0, 25]);
 
     const svg = d3.select('#map').select('svg');
-    circles = svg
+    circles = d3.select('#map')
+      .select('svg')
       .selectAll('circle')
-      .data(stations, d => d.short_name)
-      .enter()
-      .append('circle')
+      .data(filteredStations, d => d.short_name)
+      .join(
+        enter => enter.append('circle')
+          .attr('stroke', 'white')
+          .attr('stroke-width', 1)
+          .attr('opacity', 0.6)
+          .append('title'),
+        update => update,
+        exit => exit.remove()
+      )
       .attr('r', d => radiusScale(d.totalTraffic))
-      .attr('stroke', 'white')
-      .attr('stroke-width', 1)
-      .attr('opacity', 0.6)
-      .style('--departure-ratio', d => {
+      .attr('fill', d => {
         const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-        return stationFlow(ratio);
+        if (ratio < 0.33) return 'darkorange';
+        else if (ratio > 0.66) return 'steelblue';
+        else return 'purple'; 
       })
       .each(function (d) {
-        d3.select(this)
-          .append('title')
-          .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+        let title = d3.select(this).select('title');
+        if (title.empty()) {
+          title = d3.select(this).append('title');
+        }
+        title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
       });
 
     updatePositions();

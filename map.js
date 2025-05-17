@@ -193,25 +193,6 @@ map.on('load', async () => {
 
     const svg = d3.select('#map').append('svg');
 
-    circles = svg
-      .selectAll('circle')
-      .data(stations, d => d.short_name)
-      .enter()
-      .append('circle')
-      .attr('r', d => radiusScale(d.totalTraffic))
-      .attr('stroke', 'white')
-      .attr('stroke-width', 1)
-      .attr('opacity', 0.6)
-      .style('--departure-ratio', d => {
-        const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-        return stationFlow(ratio);
-      })
-      .each(function (d) {
-        d3.select(this)
-          .append('title')
-          .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
-      });
-
     updatePositions();
     map.on('move', updatePositions);
     map.on('zoom', updatePositions);

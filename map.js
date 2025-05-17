@@ -1,4 +1,4 @@
-import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
+ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaHNlcnlrYXZhIiwiYSI6ImNtYXJvMTE3MTBkYzEyd29udjNxYzhvNjEifQ.ekPmWTBdoI9PhiAS5hkQRw';
@@ -20,7 +20,6 @@ let radiusScale;
 let timeFilter = -1;
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
-const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 const timeSlider = document.getElementById('timeSlider');
 const selectedTime = document.getElementById('timeValue');
@@ -99,6 +98,7 @@ function updateScatterPlot(timeFilter) {
     .data(filteredStations, d => d.short_name)
     .join(
       enter => enter.append('circle')
+        .attr('fill', 'steelblue')
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
         .attr('opacity', 0.6)
@@ -112,9 +112,7 @@ function updateScatterPlot(timeFilter) {
       if (title.empty()) {
         title = d3.select(this).append('title');
       }
-      title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
-      const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0;
-      this.style.setProperty('--departure-ratio', stationFlow(ratio));
+      title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
     });
 
   updatePositions();
@@ -181,6 +179,7 @@ map.on('load', async () => {
     ]);
 
     stations = stationJson.data.stations;
+
     stations = computeStationTraffic(stations, timeFilter);
 
     radiusScale = d3.scaleSqrt()
@@ -194,15 +193,14 @@ map.on('load', async () => {
       .enter()
       .append('circle')
       .attr('r', d => radiusScale(d.totalTraffic))
+      .attr('fill', 'steelblue')
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
       .attr('opacity', 0.6)
       .each(function (d) {
         d3.select(this)
           .append('title')
-          .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
-        const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0;
-        this.style.setProperty('--departure-ratio', stationFlow(ratio));
+          .text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
       });
 
     updatePositions();

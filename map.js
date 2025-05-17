@@ -24,6 +24,7 @@ let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
 const timeSlider = document.getElementById('timeSlider');
 const selectedTime = document.getElementById('timeValue');
 const anyTimeLabel = document.getElementById('anyTime');
+
 const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 function formatTime(minutes) {
@@ -116,7 +117,7 @@ function updateScatterPlot(timeFilter) {
       if (title.empty()) {
         title = d3.select(this).append('title');
       }
-      title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
+      title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
     });
 
   updatePositions();
@@ -190,33 +191,25 @@ map.on('load', async () => {
       .domain([0, d3.max(stations, d => d.totalTraffic)])
       .range([0, 25]);
 
-    const svg = d3.select('#map').select('svg');
-    circles = d3.select('#map')
-      .select('svg')
+    const svg = d3.select('#map').append('svg');
+
+    circles = svg
       .selectAll('circle')
-      .data(filteredStations, d => d.short_name)
-      .join(
-        enter => enter.append('circle')
-          .attr('stroke', 'white')
-          .attr('stroke-width', 1)
-          .attr('opacity', 0.6)
-          .append('title'),
-        update => update,
-        exit => exit.remove()
-      )
+      .data(stations, d => d.short_name)
+      .enter()
+      .append('circle')
       .attr('r', d => radiusScale(d.totalTraffic))
-      .attr('fill', d => {
+      .attr('stroke', 'white')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.6)
+      .style('--departure-ratio', d => {
         const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-        if (ratio < 0.33) return 'darkorange';
-        else if (ratio > 0.66) return 'steelblue';
-        else return 'purple'; 
+        return stationFlow(ratio);
       })
       .each(function (d) {
-        let title = d3.select(this).select('title');
-        if (title.empty()) {
-          title = d3.select(this).append('title');
-        }
-        title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
+        d3.select(this)
+          .append('title')
+          .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
       });
 
     updatePositions();

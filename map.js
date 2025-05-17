@@ -2,7 +2,6 @@ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 console.log('Mapbox GL JS Loaded:', mapboxgl);
-
 mapboxgl.accessToken = 'pk.eyJ1IjoiaHNlcnlrYXZhIiwiYSI6ImNtYXJvMTE3MTBkYzEyd29udjNxYzhvNjEifQ.ekPmWTBdoI9PhiAS5hkQRw';
 
 const map = new mapboxgl.Map({
@@ -13,13 +12,6 @@ const map = new mapboxgl.Map({
   minZoom: 5,
   maxZoom: 18
 });
-let circles;
-function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.lon, +station.lat);
-  const { x, y } = map.project(point);
-  return { cx: x, cy: y };
-}
-
 
 map.on('load', async () => {
   map.addSource('boston_route', {
@@ -53,38 +45,48 @@ map.on('load', async () => {
       'line-opacity': 0.6
     },
   });
+
+  let jsonData;
   try {
-    const jsonUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-    const json = await d3.json(jsonUrl);
-    const stations = json.data.stations;
-
-    console.log('Loaded Bluebikes Data:', stations);
-
+    const stationUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
+    const json = await d3.json(stationUrl);
+    jsonData = json;
     const svg = d3.select('#map').select('svg');
 
-    circles = svg
-      .selectAll('circle')
-      .data(stations)
-      .enter()
-      .append('circle')
-      .attr('r', 5)
-      .attr('fill', 'steelblue')
-      .attr('stroke', 'white')
-      .attr('stroke-width', 1)
-      .attr('opacity', 0.8);
+    const stations = jsonData.data.stations;
+    console.log('Stations Array:', stations);
 
-    function updatePositions() {
-      circles
-        .attr('cx', d => getCoords(d).cx)
-        .attr('cy', d => getCoords(d).cy);
+    function getCoords(station) {
+      const point = new mapboxgl.LngLat(+station.lon, +station.lat);
+      const { x, y } = map.project(point);
+      return { cx: x, cy: y };
     }
-    updatePositions();
-    map.on('move', updatePositions);
-    map.on('zoom', updatePositions);
-    map.on('resize', updatePositions);
-    map.on('moveend', updatePositions);
 
+    const trafficUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv';
+    const trips = await d3.csv(trafficUrl);
+
+    const departures = d3.rollup(
+      trips,
+      v => v.length,
+      d => d.start_station_id
+    );
+
+    const arrivals = d3.rollup(
+      trips,
+      v => v.length,
+      d => d.end_station_id
+    );
+
+    const enrichedStations = stations.map(station => {
+      const id = station.short_name;
+      station.arrivals = arrivals.get(id) ?? 0;
+      station.departures = departures.get(id) ?? 0;
+      station.totalTraffic = station.arrivals + station.departures;
+      return station;
+    });
+
+    console.log('Enriched Stations:', enrichedStations);
   } catch (error) {
-    console.error('Error loading Bluebikes JSON:', error);
+    console.error('Error loading JSON or CSV:', error);
   }
 });

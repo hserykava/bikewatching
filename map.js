@@ -24,6 +24,7 @@ let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
 const timeSlider = document.getElementById('timeSlider');
 const selectedTime = document.getElementById('timeValue');
 const anyTimeLabel = document.getElementById('anyTime');
+const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 function formatTime(minutes) {
   const date = new Date(0, 0, 0, 0, minutes);
@@ -98,7 +99,6 @@ function updateScatterPlot(timeFilter) {
     .data(filteredStations, d => d.short_name)
     .join(
       enter => enter.append('circle')
-        .attr('fill', 'steelblue')
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
         .attr('opacity', 0.6)
@@ -107,6 +107,10 @@ function updateScatterPlot(timeFilter) {
       exit => exit.remove()
     )
     .attr('r', d => radiusScale(d.totalTraffic))
+    .style('--departure-ratio', d => {
+      const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
+      return stationFlow(ratio);
+    })
     .each(function (d) {
       let title = d3.select(this).select('title');
       if (title.empty()) {
@@ -193,10 +197,13 @@ map.on('load', async () => {
       .enter()
       .append('circle')
       .attr('r', d => radiusScale(d.totalTraffic))
-      .attr('fill', 'steelblue')
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
       .attr('opacity', 0.6)
+      .style('--departure-ratio', d => {
+        const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
+        return stationFlow(ratio);
+      })
       .each(function (d) {
         d3.select(this)
           .append('title')

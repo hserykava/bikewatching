@@ -2,6 +2,7 @@ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 console.log('Mapbox GL JS Loaded:', mapboxgl);
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiaHNlcnlrYXZhIiwiYSI6ImNtYXJvMTE3MTBkYzEyd29udjNxYzhvNjEifQ.ekPmWTBdoI9PhiAS5hkQRw';
 
 const map = new mapboxgl.Map({
@@ -14,6 +15,7 @@ const map = new mapboxgl.Map({
 });
 
 const svg = d3.select('#map').select('svg');
+
 function getCoords(station) {
   const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
   const { x, y } = map.project(point);
@@ -36,6 +38,7 @@ map.on('load', async () => {
       'line-opacity': 0.6
     },
   });
+
   map.addSource('cambridge_route', {
     type: 'geojson',
     data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson',
@@ -51,18 +54,20 @@ map.on('load', async () => {
       'line-opacity': 0.6
     },
   });
-  let stations = [];
 
+  let stations;
   try {
     const jsonUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-    const json = await d3.json(jsonUrl);
-    console.log('Loaded JSON Data:', json);
+    const jsonData = await d3.json(jsonUrl);
+    stations = jsonData.data.stations;
 
-    stations = json.data.stations;
+    console.log('Loaded JSON Data:', jsonData);
     console.log('Stations Array:', stations);
   } catch (error) {
     console.error('Error loading JSON:', error);
+    return;
   }
+
   const circles = svg
     .selectAll('circle')
     .data(stations)
@@ -80,7 +85,8 @@ map.on('load', async () => {
       .attr('cy', d => getCoords(d).cy);
   }
 
-  updatePositions(); 
+  updatePositions();
+
   map.on('move', updatePositions);
   map.on('zoom', updatePositions);
   map.on('resize', updatePositions);

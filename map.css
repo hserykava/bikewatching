@@ -34,6 +34,7 @@ body {
     var(--color-arrivals)
   );
   fill: var(--color);
+  background-color: var(--color);
 }
 
 circle {

@@ -20,6 +20,7 @@ let radiusScale;
 let timeFilter = -1;
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
+const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 const timeSlider = document.getElementById('timeSlider');
 const selectedTime = document.getElementById('timeValue');
@@ -98,7 +99,6 @@ function updateScatterPlot(timeFilter) {
     .data(filteredStations, d => d.short_name)
     .join(
       enter => enter.append('circle')
-        .attr('fill', 'steelblue')
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
         .attr('opacity', 0.6)
@@ -113,6 +113,8 @@ function updateScatterPlot(timeFilter) {
         title = d3.select(this).append('title');
       }
       title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+      const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0;
+      this.style.setProperty('--departure-ratio', stationFlow(ratio));
     });
 
   updatePositions();
@@ -179,7 +181,6 @@ map.on('load', async () => {
     ]);
 
     stations = stationJson.data.stations;
-
     stations = computeStationTraffic(stations, timeFilter);
 
     radiusScale = d3.scaleSqrt()
@@ -193,7 +194,6 @@ map.on('load', async () => {
       .enter()
       .append('circle')
       .attr('r', d => radiusScale(d.totalTraffic))
-      .attr('fill', 'steelblue')
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
       .attr('opacity', 0.6)
@@ -201,6 +201,8 @@ map.on('load', async () => {
         d3.select(this)
           .append('title')
           .text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+        const ratio = d.totalTraffic > 0 ? d.departures / d.totalTraffic : 0;
+        this.style.setProperty('--departure-ratio', stationFlow(ratio));
       });
 
     updatePositions();

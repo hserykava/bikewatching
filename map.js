@@ -207,8 +207,8 @@ map.on('load', async () => {
       .attr('r', d => radiusScale(d.totalTraffic))
       .attr('fill', d => {
         const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-        if (ratio < 0.33) return 'darkorange';
-        else if (ratio > 0.66) return 'steelblue';
+        if (ratio < 0.5) return 'darkorange';
+        else if (ratio > 0.5) return 'steelblue';
         else return 'purple'; 
       })
       .each(function (d) {

@@ -29,7 +29,7 @@ map.on('load', async () => {
   });
   map.addSource('cambridge_route', {
     type: 'geojson',
-    data: 'https://data.cambridgema.gov/resource/42cb-6t3e.geojson',
+    data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson',
   });
 
   map.addLayer({

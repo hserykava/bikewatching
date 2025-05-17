@@ -13,14 +13,13 @@ const map = new mapboxgl.Map({
   minZoom: 5,
   maxZoom: 18
 });
-
-const svg = d3.select('#map').select('svg');
-
+let circles;
 function getCoords(station) {
-  const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
+  const point = new mapboxgl.LngLat(+station.lon, +station.lat);
   const { x, y } = map.project(point);
   return { cx: x, cy: y };
 }
+
 
 map.on('load', async () => {
   map.addSource('boston_route', {
@@ -54,41 +53,38 @@ map.on('load', async () => {
       'line-opacity': 0.6
     },
   });
-
-  let stations;
   try {
     const jsonUrl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
-    const jsonData = await d3.json(jsonUrl);
-    stations = jsonData.data.stations;
+    const json = await d3.json(jsonUrl);
+    const stations = json.data.stations;
 
-    console.log('Loaded JSON Data:', jsonData);
-    console.log('Stations Array:', stations);
+    console.log('Loaded Bluebikes Data:', stations);
+
+    const svg = d3.select('#map').select('svg');
+
+    circles = svg
+      .selectAll('circle')
+      .data(stations)
+      .enter()
+      .append('circle')
+      .attr('r', 5)
+      .attr('fill', 'steelblue')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.8);
+
+    function updatePositions() {
+      circles
+        .attr('cx', d => getCoords(d).cx)
+        .attr('cy', d => getCoords(d).cy);
+    }
+    updatePositions();
+    map.on('move', updatePositions);
+    map.on('zoom', updatePositions);
+    map.on('resize', updatePositions);
+    map.on('moveend', updatePositions);
+
   } catch (error) {
-    console.error('Error loading JSON:', error);
-    return;
+    console.error('Error loading Bluebikes JSON:', error);
   }
-
-  const circles = svg
-    .selectAll('circle')
-    .data(stations)
-    .enter()
-    .append('circle')
-    .attr('r', 5)
-    .attr('fill', 'steelblue')
-    .attr('stroke', 'white')
-    .attr('stroke-width', 1)
-    .attr('opacity', 0.8);
-
-  function updatePositions() {
-    circles
-      .attr('cx', d => getCoords(d).cx)
-      .attr('cy', d => getCoords(d).cy);
-  }
-
-  updatePositions();
-
-  map.on('move', updatePositions);
-  map.on('zoom', updatePositions);
-  map.on('resize', updatePositions);
-  map.on('moveend', updatePositions);
 });

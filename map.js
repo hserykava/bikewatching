@@ -12,7 +12,27 @@ const map = new mapboxgl.Map({
   minZoom: 5,
   maxZoom: 18
 });
+const timeSlider = document.getElementById('timeSlider');
+const selectedTime = document.getElementById('timeValue');
+const anyTimeLabel = document.getElementById('anyTime');
+let timeFilter = -1;
 
+function formatTime(minutes) {
+  const date = new Date(0, 0, 0, 0, minutes);
+  return date.toLocaleString('en-US', { timeStyle: 'short' });
+}
+
+function updateTimeDisplay() {
+  timeFilter = Number(timeSlider.value);
+
+  if (timeFilter === -1) {
+    selectedTime.textContent = '';
+    anyTimeLabel.style.display = 'block';
+  } else {
+    selectedTime.textContent = formatTime(timeFilter);
+    anyTimeLabel.style.display = 'none';
+  }
+}
 let circles;
 
 function getCoords(station) {
@@ -62,6 +82,7 @@ map.on('load', async () => {
 
     let stations = stationsJson.data.stations;
     const trips = tripsCsv;
+
     const departures = d3.rollup(
       trips,
       v => v.length,
@@ -81,6 +102,7 @@ map.on('load', async () => {
       station.totalTraffic = station.arrivals + station.departures;
       return station;
     });
+
     const radiusScale = d3.scaleSqrt()
       .domain([0, d3.max(stations, d => d.totalTraffic)])
       .range([0, 25]);
@@ -110,11 +132,12 @@ map.on('load', async () => {
     }
 
     updatePositions();
-
     map.on('move', updatePositions);
     map.on('zoom', updatePositions);
     map.on('resize', updatePositions);
     map.on('moveend', updatePositions);
+    timeSlider.addEventListener('input', updateTimeDisplay);
+    updateTimeDisplay();
 
   } catch (error) {
     console.error('Error loading data:', error);

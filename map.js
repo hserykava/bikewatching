@@ -1,4 +1,4 @@
-import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
+ import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaHNlcnlrYXZhIiwiYSI6ImNtYXJvMTE3MTBkYzEyd29udjNxYzhvNjEifQ.ekPmWTBdoI9PhiAS5hkQRw';
@@ -24,8 +24,6 @@ let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
 const timeSlider = document.getElementById('timeSlider');
 const selectedTime = document.getElementById('timeValue');
 const anyTimeLabel = document.getElementById('anyTime');
-
-const stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
 function formatTime(minutes) {
   const date = new Date(0, 0, 0, 0, minutes);
@@ -100,6 +98,7 @@ function updateScatterPlot(timeFilter) {
     .data(filteredStations, d => d.short_name)
     .join(
       enter => enter.append('circle')
+        .attr('fill', 'steelblue')
         .attr('stroke', 'white')
         .attr('stroke-width', 1)
         .attr('opacity', 0.6)
@@ -108,16 +107,12 @@ function updateScatterPlot(timeFilter) {
       exit => exit.remove()
     )
     .attr('r', d => radiusScale(d.totalTraffic))
-    .style('--departure-ratio', d => {
-      const ratio = d.totalTraffic === 0 ? 0.5 : d.departures / d.totalTraffic;
-      return stationFlow(ratio);
-    })
     .each(function (d) {
       let title = d3.select(this).select('title');
       if (title.empty()) {
         title = d3.select(this).append('title');
       }
-      title.text(`${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`);
+      title.text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
     });
 
   updatePositions();
@@ -191,7 +186,22 @@ map.on('load', async () => {
       .domain([0, d3.max(stations, d => d.totalTraffic)])
       .range([0, 25]);
 
-    const svg = d3.select('#map').append('svg');
+    const svg = d3.select('#map').select('svg');
+    circles = svg
+      .selectAll('circle')
+      .data(stations, d => d.short_name)
+      .enter()
+      .append('circle')
+      .attr('r', d => radiusScale(d.totalTraffic))
+      .attr('fill', 'steelblue')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.6)
+      .each(function (d) {
+        d3.select(this)
+          .append('title')
+          .text(${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals));
+      });
 
     updatePositions();
     map.on('move', updatePositions);
@@ -206,3 +216,4 @@ map.on('load', async () => {
     console.error('Error loading data:', error);
   }
 });
+

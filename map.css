@@ -56,25 +56,20 @@ em {
 .legend {
   display: flex;
   justify-content: center;
-  gap: 1em;
+  gap: 1px;
   margin-block: 1em;
+  font-size: 14px;
+  font-family: sans-serif;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  font-size: 0.9em;
-  padding: 0.4em 0.6em;
-  border-radius: 2em;
-  white-space: nowrap;
-}
-
-.legend-item::before {
-  content: "";
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
+.legend > div {
+  flex: 1;
+  padding: 0.5em 1.5em;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  --color-departures: steelblue;
+  --color-arrivals: hotpink;
+  --color: color-mix(in srgb, var(--color-departures) calc(100% * var(--departure-ratio)), var(--color-arrivals));
   background: var(--color);
 }

@@ -25,6 +25,17 @@ body {
 }
 circle {
   pointer-events: auto;
+
+  --color-departures: steelblue;
+  --color-arrivals: darkorange;
+
+  --color: color-mix(
+    in srgb,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+  );
+
+  fill: var(--color);
 }
 
 header {

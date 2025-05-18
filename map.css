@@ -27,7 +27,7 @@ circle {
   pointer-events: auto;
 
   --color-departures: steelblue;
-  --color-arrivals: darkorange;
+  --color-arrivals: hotpink;
 
   --color: color-mix(
     in srgb,

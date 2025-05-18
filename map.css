@@ -56,18 +56,24 @@ em {
 .legend {
   display: flex;
   justify-content: center;
-  gap: 1px;
+  gap: 2em;
   margin-block: 1em;
   font-size: 14px;
   font-family: sans-serif;
 }
 
 .legend > div {
-  flex: 1;
-  padding: 0.5em 1.5em;
-  text-align: center;
-  color: white;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: #333;
+}
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+
   --color-departures: steelblue;
   --color-arrivals: hotpink;
   --color: color-mix(in srgb, var(--color-departures) calc(100% * var(--departure-ratio)), var(--color-arrivals));
